@@ -67,6 +67,9 @@ class Player(pygame.sprite.Sprite):
         self.rect.y += self.vspeed
         self.vspeed += GRAVITY
 
+        if self.vspeed > 16:
+            self.vspeed = 16
+
         if pygame.sprite.spritecollideany(self, self.platformsGroup):
             if self.vspeed > 0:
                 self.vspeed = 0
@@ -86,12 +89,13 @@ class Controller():
         clock = pygame.time.Clock()
 
         platformsGroup = pygame.sprite.Group()
+        enemiesGroup = pygame.sprite.Group()
         allSpritesGroup = pygame.sprite.Group()
 
         player = Player(64, 350, platformsGroup)
         allSpritesGroup.add(player)
 
-        self.makeLevel(platformsGroup, allSpritesGroup)
+        self.makeLevel(platformsGroup, enemiesGroup, allSpritesGroup)
 
         oldKeys = pygame.key.get_pressed()
 
@@ -116,6 +120,7 @@ class Controller():
             oldKeys = keys
             
             player.update()
+            enemiesGroup.update()
 
             screen.fill(BLACK)
             allSpritesGroup.draw(screen)
@@ -123,7 +128,7 @@ class Controller():
 
             clock.tick(60)
 
-    def makeLevel(self, platformsGroup, allSpritesGroup):
+    def makeLevel(self, platformsGroup, enemiesGroup, allSpritesGroup):
 
         platform = Platform(0, 0, 32, 512, BLUE)
         platformsGroup.add(platform)
@@ -137,5 +142,43 @@ class Controller():
         platform = Platform(256, 384, 128, 32, BLUE)
         platformsGroup.add(platform)
         allSpritesGroup.add(platform)
+        enemy = Enemy(256, 240, RIGHT, 0, platformsGroup)
+        enemiesGroup.add(enemy)
+        allSpritesGroup.add(enemy)
 
+class Enemy(pygame.sprite.Sprite):
+
+    direction = 0
+    iq = 0
+    vspeed = 0
+    platformsGroup = None
+
+    def __init__(self, x, y, direction, iq, platformsGroup):
+
+        pygame.sprite.Sprite.__init__(self)
+
+        self.image = pygame.Surface((32, 32))
+        self.image.fill(RED)
+
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
+
+        self.direction = direction
+        self.iq = 0
+        self.platformsGroup = platformsGroup
+
+    def update(self):
+
+        self.rect.y += self.vspeed
+        self.vspeed += GRAVITY
+        while pygame.sprite.spritecollideany(self, self.platformsGroup):
+            self.rect.y -= 1
+            self.vspeed = 0
+
+        self.rect.x += self.direction * 4
+        if pygame.sprite.spritecollideany(self, self.platformsGroup):
+            self.direction *= -1
+            self.rect.x += self.direction * 4
+            
 game = Controller()
