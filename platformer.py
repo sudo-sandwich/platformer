@@ -6,6 +6,7 @@ WHITE = (255, 255, 255)
 RED = (255, 0, 0)
 GREEN = (0, 255, 0)
 BLUE = (0, 0, 255)
+ORANGE = (255, 128, 0)
 
 WIDTH = 768
 HEIGHT = 512
@@ -142,7 +143,10 @@ class Controller():
         platform = Platform(256, 384, 128, 32, BLUE)
         platformsGroup.add(platform)
         allSpritesGroup.add(platform)
-        enemy = Enemy(256, 240, RIGHT, 0, platformsGroup)
+        enemy = Enemy(256, 240, RIGHT, 1, platformsGroup)
+        enemiesGroup.add(enemy)
+        allSpritesGroup.add(enemy)
+        enemy = Enemy(320, 240, LEFT, 0, platformsGroup)
         enemiesGroup.add(enemy)
         allSpritesGroup.add(enemy)
 
@@ -158,14 +162,17 @@ class Enemy(pygame.sprite.Sprite):
         pygame.sprite.Sprite.__init__(self)
 
         self.image = pygame.Surface((32, 32))
-        self.image.fill(RED)
+        if iq == 0:
+            self.image.fill(RED)
+        if iq == 1:
+            self.image.fill(ORANGE)
 
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
 
         self.direction = direction
-        self.iq = 0
+        self.iq = iq
         self.platformsGroup = platformsGroup
 
     def update(self):
@@ -175,6 +182,13 @@ class Enemy(pygame.sprite.Sprite):
         while pygame.sprite.spritecollideany(self, self.platformsGroup):
             self.rect.y -= 1
             self.vspeed = 0
+
+        if self.iq == 1:
+            self.rect.y += 1
+            if not pygame.sprite.spritecollideany(self, self.platformsGroup):                
+                self.direction *= -1
+                self.rect.x += self.direction * 4
+            self.rect.y -= 1
 
         self.rect.x += self.direction * 4
         if pygame.sprite.spritecollideany(self, self.platformsGroup):
